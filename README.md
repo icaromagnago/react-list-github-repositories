@@ -1,5 +1,5 @@
 ## Overview
-Simple React application to list and see details of git repositories.
+Simple React application to list and show git repositories details.
 
 ### Screenshots
 
