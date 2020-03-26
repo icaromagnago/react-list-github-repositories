@@ -10,6 +10,40 @@ export const Loading = styled.div`
   height: 100vh;
 `;
 
+export const IssueFilter = styled.div`
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+`;
+
+export const IssueButton = styled.button.attrs({
+  type: 'button',
+})`
+  padding: 10px 20px;
+  min-width: 85px;
+  color: #fff;
+  background-color: ${props => (props.checked ? '#5a4e8f' : '#7159c1')};
+  border: 1px solid #eee;
+
+  &:not(:last-child) {
+    border-right: none; /* Prevent double borders */
+  }
+
+  &:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+  }
+
+  &:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+  }
+
+  &:hover {
+    background-color: #5a4e8f;
+  }
+`;
+
 export const Owner = styled.header`
   display: flex;
   flex-direction: column;

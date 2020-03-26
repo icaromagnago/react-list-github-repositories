@@ -8,7 +8,7 @@ import api from '../../services/api';
 
 import Container from '../../components/Container';
 
-import { Loading, Owner, IssueList } from './styles';
+import { Loading, Owner, IssueList, IssueFilter, IssueButton } from './styles';
 
 export default class Repository extends Component {
   static propTypes = {
@@ -23,10 +23,16 @@ export default class Repository extends Component {
     repository: {},
     issues: [],
     loading: true,
+    filterOptions: [
+      { state: 'all', text: 'All', checked: false },
+      { state: 'open', text: 'Open', checked: true },
+      { state: 'closed', text: 'Closed', checked: false },
+    ],
   };
 
   async componentDidMount() {
     const { match } = this.props;
+    const { filterOptions } = this.state;
 
     const repoName = decodeURIComponent(match.params.repository);
 
@@ -34,7 +40,7 @@ export default class Repository extends Component {
       api.get(`repos/${repoName}`),
       api.get(`repos/${repoName}/issues`, {
         params: {
-          state: 'open',
+          state: filterOptions.find(f => f.checked).state,
           per_page: 5,
         },
       }),
@@ -47,8 +53,38 @@ export default class Repository extends Component {
     });
   }
 
+  loadIssues = async () => {
+    const { filterOptions } = this.state;
+    const { match } = this.props;
+    const repoName = decodeURIComponent(match.params.repository);
+
+    const issues = await api.get(`repos/${repoName}/issues`, {
+      params: {
+        state: filterOptions.find(f => f.checked).state,
+        per_page: 5,
+      },
+    });
+
+    this.setState({
+      issues: issues.data,
+    });
+  };
+
+  handleClick = async e => {
+    const { filterOptions } = this.state;
+
+    filterOptions.find(f => f.checked).checked = false;
+    filterOptions.find(f => f.state === e.target.value).checked = true;
+
+    this.setState({
+      filterOptions,
+    });
+
+    await this.loadIssues();
+  };
+
   render() {
-    const { repository, issues, loading } = this.state;
+    const { repository, issues, loading, filterOptions } = this.state;
 
     if (loading) {
       return <Loading>Carregando</Loading>;
@@ -61,6 +97,19 @@ export default class Repository extends Component {
           <h1>{repository.name}</h1>
           <p>{repository.description}</p>
         </Owner>
+
+        <IssueFilter>
+          {filterOptions.map(fo => (
+            <IssueButton
+              key={fo.state}
+              checked={fo.checked}
+              value={fo.state}
+              onClick={this.handleClick}
+            >
+              {fo.text}
+            </IssueButton>
+          ))}
+        </IssueFilter>
 
         <IssueList>
           {issues.map(issue => (
