@@ -3,12 +3,20 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
+import { FaAngleRight, FaAngleLeft } from 'react-icons/fa';
 
 import api from '../../services/api';
 
 import Container from '../../components/Container';
 
-import { Loading, Owner, IssueList, IssueFilter, IssueButton } from './styles';
+import {
+  Loading,
+  Owner,
+  IssueList,
+  IssueFilter,
+  IssueButton,
+  Pagination,
+} from './styles';
 
 export default class Repository extends Component {
   static propTypes = {
@@ -23,6 +31,7 @@ export default class Repository extends Component {
     repository: {},
     issues: [],
     loading: true,
+    page: 1,
     filterOptions: [
       { state: 'all', text: 'All', checked: false },
       { state: 'open', text: 'Open', checked: true },
@@ -32,7 +41,7 @@ export default class Repository extends Component {
 
   async componentDidMount() {
     const { match } = this.props;
-    const { filterOptions } = this.state;
+    const { filterOptions, page } = this.state;
 
     const repoName = decodeURIComponent(match.params.repository);
 
@@ -42,9 +51,12 @@ export default class Repository extends Component {
         params: {
           state: filterOptions.find(f => f.checked).state,
           per_page: 5,
+          page,
         },
       }),
     ]);
+
+    console.log(issues);
 
     this.setState({
       repository: repository.data,
@@ -54,7 +66,7 @@ export default class Repository extends Component {
   }
 
   loadIssues = async () => {
-    const { filterOptions } = this.state;
+    const { filterOptions, page } = this.state;
     const { match } = this.props;
     const repoName = decodeURIComponent(match.params.repository);
 
@@ -62,6 +74,7 @@ export default class Repository extends Component {
       params: {
         state: filterOptions.find(f => f.checked).state,
         per_page: 5,
+        page,
       },
     });
 
@@ -83,8 +96,17 @@ export default class Repository extends Component {
     await this.loadIssues();
   };
 
+  handlePagination = async action => {
+    const { page } = this.state;
+    await this.setState({
+      page: action === 'back' ? page - 1 : page + 1,
+    });
+
+    this.loadIssues();
+  };
+
   render() {
-    const { repository, issues, loading, filterOptions } = this.state;
+    const { repository, issues, loading, filterOptions, page } = this.state;
 
     if (loading) {
       return <Loading>Carregando</Loading>;
@@ -127,6 +149,19 @@ export default class Repository extends Component {
             </li>
           ))}
         </IssueList>
+        <Pagination>
+          <button
+            type="button"
+            disabled={page < 2}
+            onClick={() => this.handlePagination('back')}
+          >
+            Anterior
+          </button>
+          <span>Página {page}</span>
+          <button type="button" onClick={() => this.handlePagination('next')}>
+            Próximo
+          </button>
+        </Pagination>
       </Container>
     );
   }
